@@ -1,0 +1,35 @@
+<script type="x-shader/x-fragment" id="fragment-shader">
+
+#ifdef GL_ES
+precision mediump float;
+#endif
+  
+uniform vec2 u_resolution;
+uniform float u_time;
+  
+vec3 wave(vec2 uv, float thickness, float h, float l, float offset) {
+  float p = sin(uv.x * l + offset);
+  vec3 t = vec3(smoothstep(p, p+0.1, uv.y * h + thickness / 2.));
+  return t - vec3(smoothstep(p, p+0.1, uv.y * h - thickness / 2.));
+}
+
+void main() {
+  // Normalized pixel coordinates (from 0 to 1)
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    uv -= .5;
+    float ratio = u_resolution.x / u_resolution.y;// Aspect ratio
+    uv.x *= ratio;
+
+    vec3 col = vec3(0.);
+    col = mix(col, vec3(1., 0., 0.), wave(uv, 0.8, 20., 7., u_time) * .5);
+    col = mix(col, vec3(0., 1., 0.), wave(uv, 0.8, 20., 8., u_time + 2.) * .5);
+    col = mix(col, vec3(0., 0., 1.), wave(uv, 0.8, 20., 9., u_time - 2.) * .5);
+    
+    // Gamma correction
+    float gamma = 2.2;
+    col = pow(col, vec3(1.0/gamma));
+    
+    // Output to screen
+    gl_FragColor = vec4(col, 1.0);
+}
+</script>
